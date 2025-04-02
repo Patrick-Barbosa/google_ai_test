@@ -5,6 +5,7 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 import time
+from datetime import datetime
 
 load_dotenv()
 
@@ -12,9 +13,11 @@ def generate():
     client = genai.Client(
         api_key=os.environ.get("GEMINI_API_KEY"),
     )
+    dt_hoje = datetime.now().strftime('%d-%m-%Y')
+    pasta_de_hoje = f"{dt_hoje}_generations"
 
     model = "gemini-2.0-flash"
-    image_dir = Path("output")
+    image_dir = Path(pasta_de_hoje)
     image_files = list(image_dir.glob("*.[pj][np]g"))
     all_results = []
 

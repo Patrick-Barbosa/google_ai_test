@@ -4,9 +4,13 @@ import mimetypes
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
+from reordenador import RenomeadorArquivos
 import time
+from datetime import datetime
 
 load_dotenv()
+dt_hoje = datetime.now().strftime('%d-%m-%Y')
+pasta_de_hoje = f"{dt_hoje}_generations"
 
 def save_binary_file(file_name, data):
     with open(file_name, "wb") as f:
@@ -22,6 +26,7 @@ def generate_images():
     prompts = load_prompts('prompts.json')
     max_retries = 3
     timeout = 60  # seconds
+    renomeador = RenomeadorArquivos(pasta_de_hoje)
 
     for item in prompts:
         success = False
@@ -73,9 +78,9 @@ def generate_images():
                         inline_data = chunk.candidates[0].content.parts[0].inline_data
                         file_extension = mimetypes.guess_extension(inline_data.mime_type)
                         save_binary_file(
-                            f"output/{item['filename']}{file_extension}", inline_data.data
+                            f"{pasta_de_hoje}/{item['filename']}{file_extension}", inline_data.data
                         )
-                        print(f"Saved: output/{item['filename']}{file_extension}")
+                        print(f"Saved: {pasta_de_hoje}/{item['filename']}{file_extension}")
                         success = True
                         image_generated = True
                         break
@@ -97,7 +102,9 @@ def generate_images():
         if not success:
             print(f"Failed to generate {item['filename']} after {max_retries} attempts")
 
+        renomeador.renomear()
+
 if __name__ == "__main__":
     # Create output directory if it doesn't exist
-    os.makedirs("output", exist_ok=True)
+    os.makedirs(pasta_de_hoje, exist_ok=True)
     generate_images()
